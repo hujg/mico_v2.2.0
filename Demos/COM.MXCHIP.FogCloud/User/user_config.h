@@ -65,6 +65,10 @@
  ******************************************************************************/
 #define STACK_SIZE_USER_MAIN_THREAD         0x800
 #define STACK_SIZE_NOTIFY_THREAD            0x800
+
+#define STACK_SIZE_DOWNSTREAM_THREAD   0x400
+#define STACK_SIZE_UPSTREAM_THREAD     0x400
+
 #define MICO_PROPERTIES_NOTIFY_INTERVAL_MS  1000
    
 /*User provided configurations*/

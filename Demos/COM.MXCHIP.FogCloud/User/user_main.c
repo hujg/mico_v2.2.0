@@ -26,6 +26,22 @@
 #define user_log_trace() custom_log_trace("USER")
 
 
+int energy = 0;
+int interval = 0;
+int lights = 0;
+int remind = 0;
+int volume = 0;
+bool subscribe = true;
+char* track = NULL;
+char* url_path = NULL;
+
+
+static mico_thread_t downstream_thread_handle = NULL;
+static mico_thread_t upstream_thread_handle = NULL;
+
+extern void upstream_thread(void* arg);
+extern void downstream_thread(void* arg);
+
 /* MICO user callback: Restore default configuration provided by user
 * called when Easylink buttion long pressed
 */
@@ -41,19 +57,34 @@ OSStatus user_main( mico_Context_t * const mico_context )
 {
   user_log_trace();
   OSStatus err = kUnknownErr;
-  fogcloud_msg_t *recv_msg = NULL;
-  json_object *send_json_object = NULL;
-  const char *upload_data = NULL;
-
-  int energy_info = 100;
   
   require(mico_context, exit);
+  
+  energy = 90;
+  interval = 30;
+  lights = 10;
+  remind = 30;
+  volume = 10;
+  track = "Yesterday";
+  url_path = "www.mp3.com";
+  
+  // start the downstream thread to handle user command
+  err = mico_rtos_create_thread(&downstream_thread_handle, MICO_APPLICATION_PRIORITY, "downstream", 
+                                downstream_thread, STACK_SIZE_DOWNSTREAM_THREAD, 
+                                mico_context );
+  require_noerr_action( err, exit, user_log("ERROR: create downstream thread failed!") );
+    
+  // start the upstream thread to upload temperature && humidity to user
+  err = mico_rtos_create_thread(&upstream_thread_handle, MICO_APPLICATION_PRIORITY, "upstream", 
+                                upstream_thread, STACK_SIZE_UPSTREAM_THREAD, 
+                                mico_context );
+  require_noerr_action( err, exit, user_log("ERROR: create uptream thread failed!") );
   
   user_log("user_main: start");
   while(1){
 
-    mico_thread_sleep(1);
-    user_log("ongoing...");
+    mico_thread_sleep(10);
+    user_log("user_main: Running");
 
     // test
     if(!MicoFogCloudIsConnect(mico_context)) {
@@ -61,53 +92,6 @@ OSStatus user_main( mico_Context_t * const mico_context )
         continue;
     }
     
-    send_json_object = json_object_new_object();
-    if(NULL == send_json_object){
-        user_log("create json object error!");
-        err = kNoMemoryErr;
-    }
-    else {
-        json_object_object_add(send_json_object, "energy_info", json_object_new_int(energy_info)); 
-        upload_data = json_object_to_json_string(send_json_object);
-        if(NULL == upload_data){
-            user_log("create upload data string error!");
-            err = kNoMemoryErr;
-        }
-        else {
-            MicoFogCloudMsgSend(mico_context, NULL, 0, (unsigned char*)upload_data, strlen(upload_data));
-            user_log("ready sended, %s", (unsigned char*)upload_data);
-            err = kNoErr;
-        }
-        // free json object memory
-        json_object_put(send_json_object);
-        send_json_object = NULL;
-        user_log("free json_object_put");
-    }
-    
-    
-    // recv_msg->data = <topic><data>
-    err = MicoFogCloudMsgRecv(mico_context, &recv_msg, 200);
-    user_log("err = %d", err);
-    if(kNoErr == err){
-      user_log("Msg recv: topic[%d]=[%.*s]\tdata[%d]=[%.*s]", 
-               recv_msg->topic_len, recv_msg->topic_len, recv_msg->data, 
-               recv_msg->data_len, recv_msg->data_len, recv_msg->data + recv_msg->topic_len);
-      
-      // send msg to topic: "device_id/out"
-      err = MicoFogCloudMsgSend(mico_context, NULL, 0, recv_msg->data + recv_msg->topic_len , recv_msg->data_len);
-      if(kNoErr == err){
-        user_log("Msg echo success!");
-      }
-      else{
-        user_log("Msg echo failed! err=%d.", err);
-      }
-      
-      // NOTE: free msg memory after used.
-      if(NULL != recv_msg){
-        free(recv_msg);
-        recv_msg = NULL;
-      }
-    }
   }
   
 exit:
