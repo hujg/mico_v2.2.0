@@ -15,19 +15,20 @@ History:
 #include "MICO.h"
 
 // for MICO
-#define dbg_printf(M, ...) custom_log("MemMng", M, ##__VA_ARGS__)
+#define MemMng_DBG(M, ...) custom_log("MemMng > DBG", M, ##__VA_ARGS__)
+#define MemMng_ERR(M, ...) custom_log("MemMng > ERR", M, ##__VA_ARGS__)
 
 // if Memery used
-typedef enum _SMemValid_t {
+typedef enum _EMemValid_t {
 	EMemUnused = 0,
 	EMemUsed
-} SMemValid;
+} EMemValid;
 
 // Pool struct of Memery Manage
 typedef struct _SMem_t {
 	addP_t      next;
 	addP_t      prev;
-	SMemValid   used;
+	EMemValid   used;
 } SMem;
 // size of struct of SMem
 #define	SIZEOF_STRUCT_MEM	sizeof(SMem)
@@ -69,9 +70,9 @@ void MemInit(void)
 	
 	g_ram_s = (addP_t)MemeryBuffer;
 	g_ram_e = (addP_t)&MemeryBuffer[SRAM_SIZE - 1] - MEM_ALIGN_SEG_SIZE + 1;    // need check ?
-	dbg_printf("g_ram_s:0x%8X, g_ram_e:0x%8X", g_ram_s, g_ram_e);
-    dbg_printf("MemeryBuffer:0x%8X, &MemeryBuffer[SRAM_SIZE - 1]:0x%8X", (addP_t)MemeryBuffer, (addP_t)&MemeryBuffer[SRAM_SIZE - 1] - MEM_ALIGN_SEG_SIZE + 1);
-    dbg_printf("size of SIZEOF_STRUCT_MEM:%d", SIZEOF_STRUCT_MEM);
+	MemMng_DBG("g_ram_s:0x%8X, g_ram_e:0x%8X", g_ram_s, g_ram_e);
+    MemMng_DBG("MemeryBuffer:0x%8X, &MemeryBuffer[SRAM_SIZE - 1]:0x%8X", (addP_t)MemeryBuffer, (addP_t)&MemeryBuffer[SRAM_SIZE - 1] - MEM_ALIGN_SEG_SIZE + 1);
+    MemMng_DBG("size of SIZEOF_STRUCT_MEM:%d", SIZEOF_STRUCT_MEM);
 	
 	mem = (SMem *)g_ram_s;
 	mem->next = g_ram_e;
@@ -87,6 +88,8 @@ void MemInit(void)
     
     err = mico_rtos_init_mutex(&MemeryMutex);
     if(err) {}
+    
+    MemMng_DBG("MemInit Finished");
 }
 
 
@@ -100,60 +103,65 @@ void *MemMalloc(u32 size)
     mico_rtos_lock_mutex(&MemeryMutex);
 
 	if(size == 0) {
-		dbg_printf("error: MemMalloc: size = 0");
-		return NULL;
+		MemMng_ERR("Size incorrect");
+		ret_addr = NULL;
 	}
-	
-	size = GetAlignSegSize(size);
-	
-	mem = (SMem *)g_low_free;
-	if(mem == NULL) {
-		dbg_printf("error: MemMalloc: g_low_free = NULL");
-		return NULL;
-	}
-	
-	while(mem->next != NULL) {
-		if((mem->used == EMemUsed) || ((mem->next - (addP_t)mem - MEM_ALIGN_SEG_SIZE*2) < size)) {
-			mem = (SMem *)mem->next;
-		}
-		else {
-			break;
-		}
-	}
-	
-	if(mem->next == NULL) {
-		dbg_printf("error: MemMalloc: mem->next = NULL");
-		return NULL;
-	}
-	
-	mem_next = (SMem *)mem->next;
-	new_mem = (SMem *)((addP_t)mem + MEM_ALIGN_SEG_SIZE + size);
-	memset(new_mem, 0, sizeof(SMem));
-	
-	mem->next = (addP_t)new_mem;
-	mem->used = EMemUsed;
-	ret_addr = (addP_t)mem + MEM_ALIGN_SEG_SIZE;
-	
-	new_mem->next = (addP_t)mem_next;
-	new_mem->prev = (addP_t)mem;
-	new_mem->used = EMemUnused;
-	
-	mem_next->prev = (addP_t)new_mem;
-	
-	mem = (SMem *)g_low_free;
-	while((mem->used == EMemUsed) || (mem->next == NULL)) {
-		mem = (SMem *)mem->next;
-	}
-	if(mem->next == NULL) {
-		g_low_free = NULL;
-	}
-	else {
-		g_low_free = (addP_t)mem;
-	}
+    else {
+        size = GetAlignSegSize(size);
+        
+        mem = (SMem *)g_low_free;
+        if(mem == NULL) {
+            MemMng_ERR("g_low_free = NULL");
+            ret_addr = NULL;
+        }
+        else {
+            while(mem->next != NULL) {
+                if((mem->used == EMemUsed) || ((mem->next - (addP_t)mem - MEM_ALIGN_SEG_SIZE*2) < size)) {
+                    mem = (SMem *)mem->next;
+                }
+                else {
+                    break;
+                }
+            }
+            
+            if(mem->next == NULL) {
+                MemMng_ERR("No Free Memery or suitable Size, mem->next = NULL");
+                ret_addr = NULL;
+            }
+            else {
+                mem_next = (SMem *)mem->next;
+                new_mem = (SMem *)((addP_t)mem + MEM_ALIGN_SEG_SIZE + size);
+                memset(new_mem, 0, sizeof(SMem));
+                
+                mem->next = (addP_t)new_mem;
+                mem->used = EMemUsed;
+                ret_addr = (addP_t)mem + MEM_ALIGN_SEG_SIZE;
+                
+                new_mem->next = (addP_t)mem_next;
+                new_mem->prev = (addP_t)mem;
+                new_mem->used = EMemUnused;
+                
+                mem_next->prev = (addP_t)new_mem;
+                
+                mem = (SMem *)g_low_free;
+                while((mem->used == EMemUsed) || (mem->next == NULL)) {
+                    mem = (SMem *)mem->next;
+                }
+                if(mem->next == NULL) {
+                    g_low_free = NULL;
+                }
+                else {
+                    g_low_free = (addP_t)mem;
+                }
+                
+                ret_addr = (void*)(addP_t)(ret_addr);
+            }
+        }
+    }
     
     mico_rtos_unlock_mutex(&MemeryMutex);
 	
-	return (void*)(addP_t)(ret_addr);
+	return ret_addr;
 }
 
 
@@ -165,23 +173,24 @@ void MemFree(void *mem)
     mico_rtos_lock_mutex(&MemeryMutex);
 
 	if(mem == NULL) {
-		dbg_printf("error: MemFree: mem = NULL");
-		return ;
+		MemMng_ERR("mem is NULL");
 	}
-	if(((addP_t)mem < g_ram_s) || ((addP_t)mem > g_ram_e)) {
-		dbg_printf("error: MemFree: mem out of range");
-		return ;
-	}
-	
-	free_mem = (SMem *)((addP_t)mem - MEM_ALIGN_SEG_SIZE);
-	free_mem->used = EMemUnused;
-	mem_low_free = (SMem *)g_low_free;
-	if((addP_t)mem < (addP_t)mem_low_free) {
-		g_low_free = (addP_t)free_mem;
-	}
-	
-	PlugHoles(free_mem);
-    
+    else {
+        if(((addP_t)mem < g_ram_s) || ((addP_t)mem > g_ram_e)) {
+            MemMng_ERR("mem is out of range");
+        }
+        else {
+            free_mem = (SMem *)((addP_t)mem - MEM_ALIGN_SEG_SIZE);
+            free_mem->used = EMemUnused;
+            mem_low_free = (SMem *)g_low_free;
+            if((addP_t)mem < (addP_t)mem_low_free) {
+                g_low_free = (addP_t)free_mem;
+            }
+            
+            PlugHoles(free_mem);
+        }
+    }
+	    
     mico_rtos_unlock_mutex(&MemeryMutex);
 }
 
@@ -229,11 +238,11 @@ void SramPrintValueCheck(addP_t addr, u32 len)
     
     mico_rtos_lock_mutex(&MemeryMutex);
 
-	dbg_printf("SramPrint >>");
+	MemMng_DBG("SramPrint >>");
 	addr &= ~((u32)MEM_SIZE_ALIGN);
 	len = GetAlignSegSize(len);
 	for(i=0; i<(len/MEM_SIZE_ALIGN); i++) {
-		dbg_printf("0x%8X: %04X %04X", addr, *(__IO u16*)(addr), *(__IO u16*)(addr + 2));
+		MemMng_DBG("0x%8X: %04X %04X", addr, *(__IO u16*)(addr), *(__IO u16*)(addr + 2));
 		addr += MEM_SIZE_ALIGN;
 	}
     
@@ -247,11 +256,11 @@ void SramPrintMngCheck()
     
     mico_rtos_lock_mutex(&MemeryMutex);
     
-    dbg_printf("SramPrintMngCheck: >>");
+    MemMng_DBG("SramPrintMngCheck: >>");
     
     mem = (SMem *)g_ram_s;
     do {
-        dbg_printf("mem:0x%8X, mem->next:0x%8X, mem->prev:0x%8X, mem->used:%d", (addP_t)mem, mem->next, mem->prev, mem->used);
+        MemMng_DBG("mem:0x%8X, mem->next:0x%8X, mem->prev:0x%8X, mem->used:%d", (addP_t)mem, mem->next, mem->prev, mem->used);
         
         if(mem->next != NULL) {
             mem = (SMem *)mem->next;

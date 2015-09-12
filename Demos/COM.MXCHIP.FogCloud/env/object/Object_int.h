@@ -8,12 +8,12 @@ History:
 
 
 
-typedef int8_t      i8;
-typedef uint8_t     u8;
-typedef int16_t     i16;
-typedef uint16_t    u16;
-typedef int32_t     i32;
-typedef uint32_t    u32;
+typedef signed char     i8;
+typedef unsigned char   u8;
+typedef signed int      i16;
+typedef unsigned int    u16;
+typedef signed long     i32;
+typedef unsigned long   u32;
 
 
 
