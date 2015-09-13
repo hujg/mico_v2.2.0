@@ -6,6 +6,12 @@ History:
 
 */
 
+#ifndef _OBJECT_INT_H
+#define _OBJECT_INT_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif 
 
 
 typedef signed char     i8;
@@ -16,5 +22,10 @@ typedef signed long     i32;
 typedef unsigned long   u32;
 
 
+#ifdef __cplusplus
+}
+#endif
+
+#endif // _OBJECT_INT_H
 
 // end of file

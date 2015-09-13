@@ -6,13 +6,17 @@ History:
 
 */
 
+#include <Object_int.h>
 
 
-// Object: Device-1
-char ObjDevice[] = "Device-1";
-char DistEnergy[] = "energy";
-char DistInterval[] = "interval";
-char DistRemind[] = "remind";
+
+void ObjDeviceInit();
+ObjectErr_t GetEnergyValue(u16* value);
+ObjectErr_t SetEnergyValue(u16 value);
+ObjectErr_t GetIntervalValue(u16* value);
+ObjectErr_t SetIntervalValue(u16 value);
+ObjectErr_t GetRemindValue(u16* value);
+ObjectErr_t SetRemindValue(u16 value);
 
 
 

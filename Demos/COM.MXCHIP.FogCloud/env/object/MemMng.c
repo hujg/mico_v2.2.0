@@ -153,15 +153,13 @@ void *MemMalloc(u32 size)
                 else {
                     g_low_free = (addP_t)mem;
                 }
-                
-                ret_addr = (void*)(addP_t)(ret_addr);
             }
         }
     }
     
     mico_rtos_unlock_mutex(&MemeryMutex);
 	
-	return ret_addr;
+	return (void*)(addP_t)(ret_addr);
 }
 
 

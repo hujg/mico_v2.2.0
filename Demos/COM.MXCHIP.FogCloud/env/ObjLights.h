@@ -6,11 +6,13 @@ History:
 
 */
 
+#include <Object_int.h>
 
 
-// Object: Lights-1
-char ObjLights[] = "Lights-1";
-char DistLights[] = "lights";
+
+void ObjLightsInit();
+ObjectErr_t GetLightsValue(u16* value);
+ObjectErr_t SetLightsValue(u16 value);
 
 
 

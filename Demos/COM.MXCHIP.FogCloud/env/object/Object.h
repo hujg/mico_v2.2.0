@@ -40,18 +40,27 @@ typedef enum _ObjectErr_t {
 #define ESM_OBJECT_OBJECT_NAME_MAX_LENGTH   16
 // distName[] string length
 #define ESM_OBJECT_DIST_NAME_MAX_LENGTH     16
+// dist string value length
+#define ESM_OBJECT_DIST_STRING_MAX_LENGTH   64
 // reason string length
 #define ESM_OBJECT_REASON_MAX_LENGTH        16
+
+// Object dist value element of data or string
+#define EDistType_Data      0
+#define EDistType_String    1
 
 
 
 void ObjectInit(void);
-ObjectErr_t ObjectCreate(char* obj_name, u8 size_of_name);
-ObjectErr_t ObjectAddDist(char* obj_name, u8 size_of_obj_name, char* dist_name, u8 size_of_dist_name);
-ObjectErr_t ObjectSubscribe(char* obj_name, u8 size_of_obj_name, threadId_t suber_id);
-ObjectErr_t ObjectUnsubscribe(char* obj_name, u8 size_of_obj_name, threadId_t unsuber_id);
-ObjectErr_t ObjectGetValue(char* obj_name, u8 size_of_obj_name, char* dist_name, u8 size_of_dist_name, u16 &value);
-ObjectErr_t ObjectSetValue(char* obj_name, u8 size_of_obj_name, char* dist_name, u8 size_of_dist_name, u16 value);
+ObjectErr_t ObjectCreate(const char* obj_name, u8 size_of_name);
+ObjectErr_t ObjectAddDist(const char* obj_name, u8 size_of_obj_name, const char* dist_name, u8 size_of_dist_name, u8 ds);
+ObjectErr_t ObjectSubscribe(const char* obj_name, u8 size_of_obj_name, SthreadId suber_id);
+ObjectErr_t ObjectUnsubscribe(const char* obj_name, u8 size_of_obj_name, SthreadId unsuber_id);
+ObjectErr_t ObjectGetValue(const char* obj_name, u8 size_of_obj_name, const char* dist_name, u8 size_of_dist_name, u16* value);
+ObjectErr_t ObjectSetValue(const char* obj_name, u8 size_of_obj_name, const char* dist_name, u8 size_of_dist_name, u16 value);
+ObjectErr_t ObjectGetString(const char* obj_name, u8 size_of_obj_name, const char* dist_name, u8 size_of_dist_name, char* str);
+ObjectErr_t ObjectSetString(const char* obj_name, u8 size_of_obj_name, const char* dist_name, u8 size_of_dist_name, char* str);
+void ObjectPrint();
 
 
 
