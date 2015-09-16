@@ -6,6 +6,14 @@ History:
 
 */
 
+#ifndef _OBJMUSIC_H
+#define _OBJMUSIC_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif 
+
+
 #include <Object_int.h>
 
 
@@ -18,5 +26,10 @@ ObjectErr_t GetVolumeValue(u16* value);
 ObjectErr_t SetVolumeValue(u16 value);
 
 
+#ifdef __cplusplus
+}
+#endif
+
+#endif // _OBJMUSIC_H
 
 // end of file

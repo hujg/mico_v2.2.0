@@ -182,6 +182,17 @@ typedef int32_t         OSStatus;
 
 #define kGenericErrorEnd            -6779   //! Last generic error code (inclusive)
 
+// Error code in Object in the range -6800 to -6900
+#define kObjFullErr                 -6800
+#define kObjNotExistErr             -6801
+#define kDistFullErr                -6802
+#define kDistNotEixstErr            -6803
+#define kSubFullErr                 -6804
+#define kSubExistErr
+#define kSubNotExistErr             -6805
+#define kNoMsgErr                   -6806
+
+
 
 //MXCHIP added for module
 #define EWOULDBLOCK 35      /* Operation would block */

@@ -3,7 +3,7 @@
 
 History:
 2013-07-31: Ted: Create
-2015-09-11: Change to used into MusicCup
+2015-09-11: Change to used for MusicCup
 
 */
 

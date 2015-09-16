@@ -26,18 +26,9 @@
 #define user_log_trace() custom_log_trace("USER")
 
 
-int energy = 0;
-int interval = 0;
-int lights = 0;
-int remind = 0;
-int volume = 0;
-bool subscribe = true;
-char* track = NULL;
-char* url_path = NULL;
-
-
 static mico_thread_t downstream_thread_handle = NULL;
 static mico_thread_t upstream_thread_handle = NULL;
+static mico_thread_t ObjectModule_thread_handle = NULL;
 
 extern void upstream_thread(void* arg);
 extern void downstream_thread(void* arg);
@@ -60,13 +51,14 @@ OSStatus user_main( mico_Context_t * const mico_context )
   
   require(mico_context, exit);
   
-  energy = 90;
-  interval = 30;
-  lights = 10;
-  remind = 30;
-  volume = 10;
-  track = "Yesterday";
-  url_path = "www.mp3.com";
+  // create ObjectModule thread
+  err = mico_rtos_create_thread(&ObjectModule_thread_handle,
+                                MICO_APPLICATION_PRIORITY,
+                                "ObjectModule",
+                                ObjectModule_Thread,
+                                STACK_SIZE_OBJECTMODULE_THREAD,
+                                mico_context);
+  require_noerr_action( err, exit, user_log("ERROR: create objectmodule thread failed!") );
   
   // start the downstream thread to handle user command
   err = mico_rtos_create_thread(&downstream_thread_handle, MICO_APPLICATION_PRIORITY, "downstream", 
@@ -88,10 +80,8 @@ OSStatus user_main( mico_Context_t * const mico_context )
 
     // test
     if(!MicoFogCloudIsConnect(mico_context)) {
-        user_log("appStatus.fogcloudStatus.isCloudConnected = false");
-        continue;
+        user_log("ERR > user_main: FogCloud disconnected");
     }
-    
   }
   
 exit:

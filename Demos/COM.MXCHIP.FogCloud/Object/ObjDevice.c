@@ -6,6 +6,7 @@ History:
 
 */
 
+
 #include <Object.h>
 #include <string.h>
 #include <ObjDevice.h>
@@ -55,6 +56,7 @@ ObjectErr_t SetRemindValue(u16 value)
 {
     return ObjectSetValue(ObjDevice, strlen(ObjDevice), DistRemind, strlen(DistRemind), value);
 }
+
 
 
 // end of file
