@@ -16,6 +16,7 @@ History:
 
 #include <Object_int.h>
 #include <ThreadMng.h>
+#include <API_MSG.h>
 // for MICO
 #include "MICO.h"
 

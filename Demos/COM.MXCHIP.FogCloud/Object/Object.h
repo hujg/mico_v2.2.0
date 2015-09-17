@@ -20,11 +20,11 @@ History:
 
 
 // Max number of Object
-#define MAX_OBJECT_NUM                  8
+#define MAX_OBJECT_NUM                  4
 // Max number of subscriber in one Object
-#define MAX_SUBSCRIBE_NUM_IN_OBJECT     8
+#define MAX_SUBSCRIBE_NUM_IN_OBJECT     4
 // Max number of dist in one Object
-#define MAX_DIST_NUM_IN_OBJECT          8
+#define MAX_DIST_NUM_IN_OBJECT          6
 // objName[] string length
 #define ESM_OBJECT_OBJECT_NAME_MAX_LENGTH   16
 // distName[] string length
@@ -40,14 +40,15 @@ History:
 
 
 
-void ObjectModule_Thread(void* arg)
-OSStatus ObjectCreate(const char* obj_name)
-OSStatus ObjectAddDist(const char* obj_name, const char* dist_name, u8 ds)
-OSStatus ObjectGetValue(const char* obj_name, const char* dist_name, u16* value)
-OSStatus ObjectSetValue(const char* obj_name, const char* dist_name, u16 value)
-OSStatus ObjectGetString(const char* obj_name, const char* dist_name, char* str)
-OSStatus ObjectSetString(const char* obj_name, const char* dist_name, char* str)
-void ObjectPrint()
+void ObjectModule_Thread(void* arg);
+void ObjectInit(void);
+OSStatus ObjectCreate(const char* obj_name);
+OSStatus ObjectAddDist(const char* obj_name, const char* dist_name, u8 ds);
+OSStatus ObjectGetValue(const char* obj_name, const char* dist_name, u16* value);
+OSStatus ObjectSetValue(const char* obj_name, const char* dist_name, u16 value);
+OSStatus ObjectGetString(const char* obj_name, const char* dist_name, char* str);
+OSStatus ObjectSetString(const char* obj_name, const char* dist_name, char* str);
+void ObjectPrint();
 
 
 

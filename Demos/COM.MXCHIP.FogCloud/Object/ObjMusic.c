@@ -20,40 +20,42 @@ char DistVolume[] = "volume";
 
 void ObjMusicInit()
 {
-    ObjectCreate(ObjMusic, strlen(ObjMusic));
-    ObjectAddDist(ObjMusic, strlen(ObjMusic), DistTrack, strlen(DistTrack), EDistType_String);
-    ObjectAddDist(ObjMusic, strlen(ObjMusic), DistUrlPath, strlen(DistUrlPath), EDistType_String);
-    ObjectAddDist(ObjMusic, strlen(ObjMusic), DistVolume, strlen(DistVolume), EDistType_Data);
+    ObjectCreate(ObjMusic);
+    ObjectAddDist(ObjMusic, DistTrack, EDistType_String);
+    ObjectAddDist(ObjMusic, DistUrlPath, EDistType_String);
+    ObjectAddDist(ObjMusic, DistVolume, EDistType_Data);
+    
+    SetVolumeValue(20);
 }
 
-ObjectErr_t GetTrackString(char* str)
+OSStatus GetTrackString(char* str)
 {
-    return ObjectGetString(ObjMusic, strlen(ObjMusic), DistTrack, strlen(DistTrack), str);
+    return ObjectGetString(ObjMusic, DistTrack, str);
 }
 
-ObjectErr_t SetTrackString(char* str)
+OSStatus SetTrackString(char* str)
 {
-    return ObjectSetString(ObjMusic, strlen(ObjMusic), DistTrack, strlen(DistTrack), str);
+    return ObjectSetString(ObjMusic, DistTrack, str);
 }
 
-ObjectErr_t GetUrlPathString(char* str)
+OSStatus GetUrlPathString(char* str)
 {
-    return ObjectGetString(ObjMusic, strlen(ObjMusic), DistUrlPath, strlen(DistUrlPath), str);
+    return ObjectGetString(ObjMusic, DistUrlPath, str);
 }
 
-ObjectErr_t SetUrlPathString(char* str)
+OSStatus SetUrlPathString(char* str)
 {
-    return ObjectSetString(ObjMusic, strlen(ObjMusic), DistUrlPath, strlen(DistUrlPath), str);
+    return ObjectSetString(ObjMusic, DistUrlPath, str);
 }
 
-ObjectErr_t GetVolumeValue(u16* value)
+OSStatus GetVolumeValue(u16* value)
 {
-    return ObjectGetValue(ObjMusic, strlen(ObjMusic), DistVolume, strlen(DistVolume), value);
+    return ObjectGetValue(ObjMusic, DistVolume, value);
 }
 
-ObjectErr_t SetVolumeValue(u16 value)
+OSStatus SetVolumeValue(u16 value)
 {
-    return ObjectSetValue(ObjMusic, strlen(ObjMusic), DistVolume, strlen(DistVolume), value);
+    return ObjectSetValue(ObjMusic, DistVolume, value);
 }
 
 

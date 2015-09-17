@@ -9,6 +9,9 @@ History:
 #include "mico.h"
 #include "MicoFogCloud.h"
 //#include "json_c/json.h"
+#include <ObjDevice.h>
+#include <ObjMusic.h>
+#include <ObjLights.h>
 
 /* User defined debug log functions
  * Add your own tag like: 'USER_UPSTREAM', the tag will be added at the beginning of a log
@@ -17,11 +20,7 @@ History:
 #define user_log(M, ...) custom_log("UPSTREAM", M, ##__VA_ARGS__)
 #define user_log_trace() custom_log_trace("UPSTREAM")
 
-extern int energy;
-extern int interval;
-extern int lights;
-extern int remind;
-extern int volume;
+
 extern bool subscribe;
 extern char* track;
 extern char* url_path;
@@ -37,6 +36,7 @@ void upstream_thread(void* arg)
     mico_Context_t *app_context = (mico_Context_t *)arg;
     json_object *send_json_object = NULL;
     const char *upload_data = NULL;
+    int value;
     
     require(app_context, exit);
     
@@ -56,11 +56,16 @@ void upstream_thread(void* arg)
             }
             else {
                 // add device parameter data into json object
-                json_object_object_add(send_json_object, "energy", json_object_new_int(energy));
-                json_object_object_add(send_json_object, "interval", json_object_new_int(interval));
-                json_object_object_add(send_json_object, "lights", json_object_new_int(lights));
-                json_object_object_add(send_json_object, "remind", json_object_new_int(remind));
-                json_object_object_add(send_json_object, "volume", json_object_new_int(volume));
+                GetEnergyValue(&value);
+                json_object_object_add(send_json_object, "energy", json_object_new_int(value));
+                GetIntervalValue(&value);
+                json_object_object_add(send_json_object, "interval", json_object_new_int(value));
+                GetLightsValue(&value);
+                json_object_object_add(send_json_object, "lights", json_object_new_int(value));
+                GetRemindValue(&value);
+                json_object_object_add(send_json_object, "remind", json_object_new_int(value));
+                GetVolumeValue(&value);
+                json_object_object_add(send_json_object, "volume", json_object_new_int(value));
                 json_object_object_add(send_json_object, "subscribe", json_object_new_boolean(subscribe));
                 json_object_object_add(send_json_object, "track", json_object_new_string(track));
                 json_object_object_add(send_json_object, "url_path", json_object_new_string(url_path));

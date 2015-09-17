@@ -9,7 +9,7 @@ History:
 #include <stdio.h>
 #include <SysCom.h>
 #include <MemMng.h>
-
+#include <API_MSG.h>
 
 // for MICO
 #define SysCom_DBG(M, ...) custom_log("SysCom > DBG", M, ##__VA_ARGS__)
@@ -53,8 +53,8 @@ void SysComInit()
 
 SysComMsg *SysComCreateMsg(MsgType_t msgtype, u16 sizeofmsg, u16 transid, SthreadId sender, SthreadId receiver)
 {
-    SysComMsg* msg;
-    void* payload;
+    SysComMsg* msg = NULL;
+    void* payload = NULL;
     
     mico_rtos_lock_mutex(&SysComMutex);
     
@@ -196,7 +196,7 @@ OSStatus SysComHandleMsg(void* msg, SthreadId tid, u32 timeout_ms)
     
     err = mico_rtos_pop_from_queue(&SysComQueue[tid], &queue_msg, timeout_ms);
     if(err != kNoErr) {
-        SysCom_ERR("SysComHandleMsg: Receive queue_msg failed with err(%d)", err);
+        // SysCom_ERR("SysComHandleMsg: Receive queue_msg failed with err(%d)", err);
     }
     else {
       SysCom_DBG("SysComHandleMsg: msg(value: 0x%08X, addr: 0x%08X)", (addP_t)msg, (addP_t)&msg);

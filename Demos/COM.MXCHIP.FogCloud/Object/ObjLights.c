@@ -19,18 +19,20 @@ const char DistLights[] = "lights";
 
 void ObjLightsInit()
 {
-    ObjectCreate(ObjLights, strlen(ObjLights));
-    ObjectAddDist(ObjLights, strlen(ObjLights), DistLights, strlen(DistLights), EDistType_Data);
+    ObjectCreate(ObjLights);
+    ObjectAddDist(ObjLights, DistLights, EDistType_Data);
+    
+    SetLightsValue(1);
 }
 
-ObjectErr_t GetLightsValue(u16* value)
+OSStatus GetLightsValue(u16* value)
 {
-    return ObjectGetValue(ObjLights, strlen(ObjLights), DistLights, strlen(DistLights), value);
+    return ObjectGetValue(ObjLights, DistLights, value);
 }
 
-ObjectErr_t SetLightsValue(u16 value)
+OSStatus SetLightsValue(u16 value)
 {
-    return ObjectSetValue(ObjLights, strlen(ObjLights), DistLights, strlen(DistLights), value);
+    return ObjectSetValue(ObjLights, DistLights, value);
 }
 
 

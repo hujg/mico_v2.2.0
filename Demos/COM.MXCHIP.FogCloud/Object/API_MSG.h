@@ -12,6 +12,8 @@ History:
 #ifdef __cplusplus
  extern "C" {
 #endif 
+   
+#include <Object.h>
 
 
 #define API_BASE        0x1000

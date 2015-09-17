@@ -9,6 +9,9 @@ History:
 #include "mico.h"
 #include "MicoFogCloud.h"
 //#include "json_c/json.h"
+#include <ObjDevice.h>
+#include <ObjMusic.h>
+#include <ObjLights.h>
 
 /* User defined debug log functions
  * Add your own tag like: 'USER_DOWNSTREAM', the tag will be added at the beginning of a log
@@ -17,11 +20,7 @@ History:
 #define user_log(M, ...) custom_log("DOWNSTREAM", M, ##__VA_ARGS__)
 #define user_log_trace() custom_log_trace("DOWNSTREAM")
 
-extern int energy;
-extern int interval;
-extern int lights;
-extern int remind;
-extern int volume;
+
 extern bool subscribe;
 extern char* track;
 extern char* url_path;
@@ -66,19 +65,19 @@ void downstream_thread(void* arg)
                         (entry ? (key = (char*)entry->k, val = (struct json_object*)entry->v, entry) : 0); \
                         entry = entry->next) {
                     if(!strcmp(key, "energy")){
-                        energy = json_object_get_int(val);
+                        SetEnergyValue(json_object_get_int(val));
                     }
                     else if(!strcmp(key, "interval")) {
-                        interval = json_object_get_int(val);
+                        SetIntervalValue(json_object_get_int(val));
                     }
                     else if(!strcmp(key, "lights")) {
-                        lights = json_object_get_int(val);
+                        SetLightsValue(json_object_get_int(val));
                     }
                     else if(!strcmp(key, "remind")) {
-                        remind = json_object_get_int(val);
+                        SetRemindValue(json_object_get_int(val));
                     }
                     else if(!strcmp(key, "volume")) {
-                        volume = json_object_get_int(val);
+                        SetVolumeValue(json_object_get_int(val));
                     }
                     else if(!strcmp(key, "subscribe")) {
                         subscribe = json_object_get_boolean(val);

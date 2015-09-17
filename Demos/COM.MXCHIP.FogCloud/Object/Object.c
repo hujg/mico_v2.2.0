@@ -7,11 +7,18 @@ History:
 */
 
 #include <Object.h>
+#include <API_MSG.h>
+#include <SysCom.h>
 // for MICO
 #include "MICO.h"
+// for user
+#include <ObjDevice.h>
+#include <ObjLights.h>
+#include <ObjMusic.h>
 
 // for MICO
 #define Object_DBG(M, ...) custom_log("Object > DBG", M, ##__VA_ARGS__)
+#define Object_INF(M, ...) custom_log("Object > INF", M, ##__VA_ARGS__)
 #define Object_ERR(M, ...) custom_log("Object > ERR", M, ##__VA_ARGS__)
 #define Object_Log_Trace() custom_log_trace("OBJECTMODULE")
 
@@ -51,17 +58,15 @@ static SObjectMng objectBackup[MAX_OBJECT_NUM];
 static mico_mutex_t ObjectMutex = NULL;
 
 
-
-static void ObjectInit(void)
-static OSStatus ObjectSubscribe(const char* obj_name, SthreadId suber_id)
-static OSStatus ObjectUnsubscribe(const char* obj_name, SthreadId unsuber_id)
-static OSStatus ObjectDataIndMsgSend(char* obj_name, char* dist_name, u16 data, SthreadId t_id)
-static OSStatus ObjectStringIndMsgSend(char* obj_name, char* dist_name, char* str, SthreadId t_id)
-static void ObjectHandleMessage()
-static void ObjectHandleSubscribeReqMessage(SysComMsg* msg)
-static OSStatus ObjectSubscribeRespMsgSend(char* obj_name, OSStatus err_state, SthreadId receiver, u16 trans_id)
-static void ObjectHandleDistQueryReqMessage(SysComMsg* msg)
-static OSStatus ObjectDistQueryRespMsgSend(char* obj_name, char* dist_name, u8 ds, SthreadId receiver, u16 trans_id)
+static OSStatus ObjectSubscribe(const char* obj_name, SthreadId suber_id);
+static OSStatus ObjectUnsubscribe(const char* obj_name, SthreadId unsuber_id);
+static OSStatus ObjectDataIndMsgSend(char* obj_name, char* dist_name, u16 data, SthreadId t_id);
+static OSStatus ObjectStringIndMsgSend(char* obj_name, char* dist_name, char* str, SthreadId t_id);
+static void ObjectHandleMessage();
+static void ObjectHandleSubscribeReqMessage(SysComMsg* msg);
+static OSStatus ObjectSubscribeRespMsgSend(char* obj_name, OSStatus err_state, SthreadId receiver, u16 trans_id);
+static void ObjectHandleDistQueryReqMessage(SysComMsg* msg);
+static OSStatus ObjectDistQueryRespMsgSend(char* obj_name, char* dist_name, u8 ds, SthreadId receiver, u16 trans_id);
 
 
 
@@ -74,17 +79,22 @@ void ObjectModule_Thread(void* arg)
     arg = arg;
     
     Object_Log_Trace();
-    ObjectInit();
+
+    Object_INF("ObjectModule_Thread Created");
     
     while(1) {
+        //mico_thread_sleep(2);
+        Object_DBG("ObjectModule_Thread: Control loop");
         // Send Indication Message if MO changed
         for(obj_index=0; obj_index<MAX_OBJECT_NUM; obj_index++) {
             if(object[obj_index].used == false) {
+                Object_DBG("ObjectModule_Thread: object[%d] is not used", obj_index);
                 continue;
             }
             
             for(dist_index=0; dist_index<MAX_DIST_NUM_IN_OBJECT; dist_index++) {
                 if(object[obj_index].dist[dist_index].used == false) {
+                    Object_DBG("ObjectModule_Thread: object[%d].dist[%d] is not used", obj_index, dist_index);
                     continue;
                 }
                 
@@ -92,12 +102,16 @@ void ObjectModule_Thread(void* arg)
                 dist_bak_temp = &objectBackup[obj_index].dist[dist_index];
                 
                 if(dist_temp->dsType == EDistType_Data) {
+                    Object_DBG("ObjectModule_Thread: dsType:%d dist_data:%d dist_data_bak:%d", dist_temp->dsType, dist_temp->data, dist_bak_temp->data);
                     if(dist_temp->data == dist_bak_temp->data) {
+                        Object_DBG("ObjectModule_Thread: dist_data is equal with dist_data_bak");
                         continue;
                     }
+                    Object_DBG("ObjectModule_Thread: %s/%s was changed", object[obj_index].objName, object[obj_index].dist[dist_index].distName);
                     // MO data changed, send indication data message to subscriber
                     for(sub_index=0; sub_index<MAX_SUBSCRIBE_NUM_IN_OBJECT; sub_index++) {
-                        if(objectBackup[obj_index].subscribe[sub_index].used == false) {
+                        if(object[obj_index].subscribe[sub_index].used == false) {
+                            Object_DBG("ObjectModule_Thread: object[%d].subscribe[%d] is not used", obj_index, sub_index);
                             continue;
                         }
                         Object_DBG("ObjectModule_Thread: %s/%s changed to %d, Send Indication message to Thread(%d)",
@@ -118,9 +132,10 @@ void ObjectModule_Thread(void* arg)
                     if(strcmp(dist_temp->str, dist_bak_temp->str) == 0) {
                         continue;
                     }
+                    Object_DBG("ObjectModule_Thread: %s/%s was changed", object[obj_index].objName, object[obj_index].dist[dist_index].distName);
                     // MO string changed, send indication string message to subscriber
                     for(sub_index=0; sub_index<MAX_SUBSCRIBE_NUM_IN_OBJECT; sub_index++) {
-                        if(objectBackup[obj_index].subscribe[sub_index].used == false) {
+                        if(object[obj_index].subscribe[sub_index].used == false) {
                             continue;
                         }
                         Object_DBG("ObjectModule_Thread: %s/%s changed to %s, Send indication message to Thread(%d)",
@@ -147,7 +162,7 @@ void ObjectModule_Thread(void* arg)
 
 
 // Object initialization
-static void ObjectInit(void)
+void ObjectInit(void)
 {
     OSStatus err;
     
@@ -158,7 +173,7 @@ static void ObjectInit(void)
         Object_ERR("ObjectInit: ObjectMutex initialized failed");
     }
     
-    Object_DBG("ObjectInit Finished");
+    Object_INF("ObjectInit Finished");
 }
 
 // Create Object
@@ -189,7 +204,7 @@ OSStatus ObjectCreate(const char* obj_name)
     objectBackup[index].used = true;
     strncpy(objectBackup[index].objName, obj_name, strlen(obj_name));
     
-    Object_DBG("Create ObjectChild %s Successfully", object[index].objName);
+    Object_INF("Create ObjectChild %s Successfully", object[index].objName);
     ret = kNoErr;
 
 ObjectCreate_RET:
@@ -248,7 +263,7 @@ OSStatus ObjectAddDist(const char* obj_name, const char* dist_name, u8 ds)
     objectBackup[index].dist[dist_index].dsType = ds;
     strncpy(objectBackup[index].dist[dist_index].distName, dist_name, strlen(dist_name));
     
-    Object_DBG("Add %s/%s Successfully", object[index].objName, object[index].dist[dist_index].distName);
+    Object_INF("Add %s/%s Successfully", object[index].objName, object[index].dist[dist_index].distName);
     ret = kNoErr;
     
 ObjectAddDist_RET:
@@ -311,7 +326,7 @@ static OSStatus ObjectSubscribe(const char* obj_name, SthreadId suber_id)
     
     object[index].subscribe[sub_index].used = true;
     object[index].subscribe[sub_index].subscriber_thread_id = suber_id;
-    Object_DBG("Subscribe successfully for Thread %d", suber_id);
+    Object_INF("Subscribe successfully for Thread %d", suber_id);
     ret = kNoErr;
     
 ObjectSubscribe_RET:
@@ -365,7 +380,7 @@ static OSStatus ObjectUnsubscribe(const char* obj_name, SthreadId unsuber_id)
     
     object[index].subscribe[sub_index].used = false;
     object[index].subscribe[sub_index].subscriber_thread_id = 0;
-    Object_DBG("Unsubscribe successfully for Thread %d", unsuber_id);
+    Object_INF("Unsubscribe successfully for Thread %d", unsuber_id);
     ret = kNoErr;
     
 ObjectUnsubscribe_RET:
@@ -718,6 +733,7 @@ static void ObjectHandleMessage()
     OSStatus err = kUnknownErr;
     SysComMsg* msg = NULL;
     
+    Object_INF("ObjectHandleMessage: Started");
     err = SysComHandleMsg(msg, ESM_OBJECT_THREAD_ID, 100);
     if((err == kNoErr) && (msg != NULL)) {
         switch(msg->msgType) {
@@ -806,15 +822,15 @@ static OSStatus ObjectSubscribeRespMsgSend(char* obj_name, OSStatus err_state, S
     switch(err_state) {
         case kNoErr:
             resp_msg->status = ESubOK;
-            resp_msg->reason = "Success"
+            strncpy(resp_msg->reason, "Success", strlen("Success"));
             break;
         case kSubExistErr:
             resp_msg->status = ESubREJECTED;
-            resp_msg->reason = "Already Exist"
+            strncpy(resp_msg->reason, "Already Exist", strlen("Already Exist"));
             break;
         default:
             resp_msg->status = ESubFAILED;
-            resp_msg->reason = "Failed"
+            strncpy(resp_msg->reason, "Failed", strlen("Failed"));
             break;
     }
     Object_DBG("ObjectSubscribeRespMsgSend: Subscribe response Message send with payload %s Status:%d Reason:%s",
@@ -852,7 +868,7 @@ static void ObjectHandleDistQueryReqMessage(SysComMsg* msg)
         return ;
     }
     
-    Object_DBG("ObjectHandleDistQueryReqMessage: Receive %s/%s dsType:%d Query Request Message");
+    Object_DBG("ObjectHandleDistQueryReqMessage: Receive %s/%s dsType:%d Query Request Message", req_msg->objName, req_msg->distName, req_msg->dsType);
     
     err = ObjectDistQueryRespMsgSend(req_msg->objName, req_msg->distName, req_msg->dsType, msg->sender, msg->transId);
     Object_DBG("ObjectHandleDistQueryReqMessage: ObjectDistQueryRespMsgSend sended with err_code(%d)", err);
@@ -878,7 +894,7 @@ static OSStatus ObjectDistQueryRespMsgSend(char* obj_name, char* dist_name, u8 d
         goto ObjectDistQueryRespMsgSend_RET;
     }
     
-    resp_msg = (SapiObjectSubscribeResp*)SysComGetPayload(msg);
+    resp_msg = (SapiObjectDistNameQueryResp*)SysComGetPayload(msg);
     
     strncpy(resp_msg->objName, obj_name, strlen(obj_name));
     strncpy(resp_msg->distName, dist_name, strlen(dist_name));
@@ -886,24 +902,24 @@ static OSStatus ObjectDistQueryRespMsgSend(char* obj_name, char* dist_name, u8 d
     
     switch(ds) {
         case EDistType_Data:
-            err = ObjectGetValue(obj_name, dist_name, resp_msg->data);
+            err = ObjectGetValue(obj_name, dist_name, &(resp_msg->data));
             break;
         case EDistType_String:
             err = ObjectGetString(obj_name, dist_name, resp_msg->str);
             break;
         default:
-            Object_ERR("ObjectDistQueryRespMsgSend: Unknow dsType(%d)", req_msg->dsType);
+            Object_ERR("ObjectDistQueryRespMsgSend: Unknow dsType(%d)", resp_msg->dsType);
             break;
     }
     
     switch(err) {
         case kNoErr:
             resp_msg->status = ESubOK;
-            resp_msg->reason = "Success"
+            strncpy(resp_msg->reason, "Success", strlen("Success"));
             break;
         default:
             resp_msg->status = ESubFAILED;
-            resp_msg->reason = "Failed"
+            strncpy(resp_msg->reason, "Failed", strlen("Failed"));
             break;
     }
     

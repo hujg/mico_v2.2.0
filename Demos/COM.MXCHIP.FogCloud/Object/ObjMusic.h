@@ -18,12 +18,12 @@ History:
 
 
 void ObjMusicInit();
-ObjectErr_t GetTrackString(char* str);
-ObjectErr_t SetTrackString(char* str);
-ObjectErr_t GetUrlPathString(char* str);
-ObjectErr_t SetUrlPathString(char* str);
-ObjectErr_t GetVolumeValue(u16* value);
-ObjectErr_t SetVolumeValue(u16 value);
+OSStatus GetTrackString(char* str);
+OSStatus SetTrackString(char* str);
+OSStatus GetUrlPathString(char* str);
+OSStatus SetUrlPathString(char* str);
+OSStatus GetVolumeValue(u16* value);
+OSStatus SetVolumeValue(u16 value);
 
 
 #ifdef __cplusplus

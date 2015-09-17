@@ -188,9 +188,9 @@ typedef int32_t         OSStatus;
 #define kDistFullErr                -6802
 #define kDistNotEixstErr            -6803
 #define kSubFullErr                 -6804
-#define kSubExistErr
-#define kSubNotExistErr             -6805
-#define kNoMsgErr                   -6806
+#define kSubExistErr                -6805
+#define kSubNotExistErr             -6806
+#define kNoMsgErr                   -6807
 
 
 

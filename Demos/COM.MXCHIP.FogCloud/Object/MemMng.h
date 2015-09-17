@@ -23,7 +23,7 @@ typedef u32     addP_t;
 
 
 // Memery Pool size
-#define	SRAM_SIZE	(10*1024)
+#define	SRAM_SIZE	(2*1024)
 
 
 void MemInit(void);

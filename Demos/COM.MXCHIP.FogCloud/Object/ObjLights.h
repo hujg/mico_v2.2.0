@@ -18,8 +18,8 @@ History:
 
 
 void ObjLightsInit();
-ObjectErr_t GetLightsValue(u16* value);
-ObjectErr_t SetLightsValue(u16 value);
+OSStatus GetLightsValue(u16* value);
+OSStatus SetLightsValue(u16 value);
 
 
 #ifdef __cplusplus

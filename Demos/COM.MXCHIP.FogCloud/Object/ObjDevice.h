@@ -18,12 +18,12 @@ History:
 
 
 void ObjDeviceInit();
-ObjectErr_t GetEnergyValue(u16* value);
-ObjectErr_t SetEnergyValue(u16 value);
-ObjectErr_t GetIntervalValue(u16* value);
-ObjectErr_t SetIntervalValue(u16 value);
-ObjectErr_t GetRemindValue(u16* value);
-ObjectErr_t SetRemindValue(u16 value);
+OSStatus GetEnergyValue(u16* value);
+OSStatus SetEnergyValue(u16 value);
+OSStatus GetIntervalValue(u16* value);
+OSStatus SetIntervalValue(u16 value);
+OSStatus GetRemindValue(u16* value);
+OSStatus SetRemindValue(u16 value);
 
 
 #ifdef __cplusplus
